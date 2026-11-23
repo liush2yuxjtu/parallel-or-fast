@@ -1,0 +1,41 @@
+{
+  "skill_name": "local-session-playbook",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to brainstorm a tricky API design and choose the next direction after each answer. Audit the provided synthetic local coding session history and tell me which chat mode to use. Include a Chinese decision tree, an A8 example, your observed evidence, and its limits.",
+      "expected_output": "Recommend Ultrafast when the next decision waits, identify the synthetic A8 example, and label unsupported conclusions.",
+      "files": [],
+      "assertions": [
+        "Recommends a single Ultrafast chat when replies gate the API design choice.",
+        "Includes a Chinese decision tree that covers parallel chats and Ultrafast.",
+        "Identifies the three previously completed and four still-running A8 chats in synthetic history.",
+        "Does not claim a measured Ultrafast speedup or measured user wait from the samples."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have several independent long-running tests in separate worktrees. Three chats finished, four are running, and I am starting A8. Audit the provided synthetic local coding session history and tell me when to use parallel or Ultrafast. Include a Chinese decision tree, observed evidence, and data limits.",
+      "expected_output": "Recommend ordinary-tier parallel work with three completed and four running at A8, and distinguish overlap from typing time or tier speedup.",
+      "files": [],
+      "assertions": [
+        "Recommends normal-tier parallel chats for isolated ready work.",
+        "Includes a Chinese decision tree that covers parallel chats and Ultrafast.",
+        "Identifies the three previously completed and four still-running A8 chats in synthetic history.",
+        "Does not claim a measured Ultrafast speedup or measured user wait from the samples."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Two unattended coding chats both need the same simulator instance, and a third can independently run tests. Audit the provided synthetic local coding session history. Give me a Chinese decision tree and an A8 example, with the recommendation, observed evidence, and data limits.",
+      "expected_output": "Run unrelated tests in parallel and serialize both simulator steps. Explain the synthetic A8 analogue and label historical estimates.",
+      "files": [],
+      "assertions": [
+        "Queues the shared simulator steps while unrelated testing runs independently.",
+        "Includes a Chinese decision tree that covers parallel chats and Ultrafast.",
+        "Identifies the three previously completed and four still-running A8 chats in synthetic history.",
+        "Does not claim a measured Ultrafast speedup or measured user wait from the samples."
+      ]
+    }
+  ]
+}

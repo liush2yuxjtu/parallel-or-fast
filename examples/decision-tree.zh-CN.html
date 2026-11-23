@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; img-src data:; font-src data:; media-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多会话并行还是 Ultrafast</title>
+<style>
+:root { color-scheme: light dark; --bg:#eeeae0; --paper:#fffdf8; --ink:#17231d; --muted:#515a51; --line:#c7c8bb; --a:#146149; --b:#8c351f; --n:#785815; --running:#176579; }
+* { box-sizing:border-box }
+@media (prefers-color-scheme:dark) {
+  :root { --bg:#141a17; --paper:#202924; --ink:#f0f1e7; --muted:#c5ccc1; --line:#526157; --a:#73dcaf; --b:#ffac91; --n:#f5cd7b; --running:#73ccdc; }
+}
+body { background:var(--bg); color:var(--ink); margin:0; font:16px/1.45 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif }
+main { width:min(100% - 28px, 850px); margin:0 auto; padding:clamp(24px,5vw,62px) 0 34px }
+header { border-top:4px solid var(--ink); padding:16px 1px 0; margin-bottom:24px }
+h1 { margin:0; font-size:clamp(29px,5vw,58px); letter-spacing:-.05em; line-height:1.14 }
+small,figcaption { color:var(--muted) }
+header small { display:block; margin-top:11px }
+section { background:var(--paper); border:1px solid var(--line); border-radius:15px; margin:0 0 14px; padding:clamp(14px,3.4vw,29px) }
+h2 { margin:0 0 14px; font-size:clamp(26px,3.8vw,37px); letter-spacing:-.04em }
+h2 span { font-family:ui-monospace,monospace; color:var(--a); margin-right:.32em }
+.pick-layout { display:grid; gap:18px; align-items:start }
+@media (min-width:740px) {
+  .pick-layout:has(.chart) { grid-template-columns:minmax(0,1fr) minmax(250px,.66fr); gap:18px }
+  .chart { align-self:center }
+}
+.tree { font-size:clamp(13px,2.4vw,17px); font-weight:700 }
+.tree ul { list-style:none; padding:0 0 0 clamp(8px,2.5vw,21px); margin:0 0 0 .42em; border-left:2px solid var(--line) }
+.tree li { position:relative; margin:0; padding:5px 0 0 }
+.tree li:has(ul) { padding-bottom:6px }
+.tree li::before { content:""; width:clamp(8px,2.5vw,21px); border-top:2px solid var(--line); position:absolute; left:calc(-1 * clamp(8px,2.5vw,21px)); top:1.12em }
+.node { display:inline-block; border:1px solid var(--line); padding:.3em .58em; border-radius:6px; margin-bottom:3px }
+.branch { display:inline-block; min-width:1.8em; color:var(--muted); font-size:.85em }
+.branch.wait { margin-right:.48em; font-variant-numeric:tabular-nums; white-space:nowrap }
+.answer { display:inline-block; margin:0 0 3px; border-radius:6px; border:1px solid currentColor; padding:.3em .55em }
+.answer + small { display:inline-block; margin:0 0 .35em .44em; font-size:.78em; white-space:nowrap }
+.a,.done { color:var(--a) } .b { color:var(--b) } .neutral,.now { color:var(--n) } .busy { color:var(--running) }
+.chart { margin:0; padding:12px; border:1px solid var(--line); border-radius:9px }
+.chart h3 { margin:0 0 8px; font-size:16px }
+.bar-row { display:grid; align-items:center; grid-template-columns:5.7em minmax(16px,1fr) auto; column-gap:.55em; margin:.34em 0; font-size:14px; font-variant-numeric:tabular-nums }
+.bar-row > span:first-child { white-space:nowrap }
+.bar-row small { font-size:.8em }
+.bar { background:var(--bg); border-radius:3px; height:8px }
+.bar i { height:8px; border-radius:3px; display:block; background:var(--running) }
+.bar-row.short i { background:var(--n) }
+.bar-row.long i { background:var(--a) }
+figure { margin:0; text-align:center }
+svg { display:block; width:min(100%,610px); height:auto; margin:auto }
+svg text { fill:var(--ink); stroke:none; font:11px ui-monospace,monospace }
+svg path { fill:none; stroke-linecap:round; stroke-width:6 }
+svg .finished { stroke:var(--a) }
+svg .running { stroke:var(--running) }
+svg .sent { stroke:var(--n) }
+svg .marker { stroke:var(--line); stroke-width:2; stroke-dasharray:3 4 }
+figcaption { font-size:14px; margin-top:4px }
+figcaption span { white-space:nowrap; margin-left:.35em }
+:focus-visible { outline:2px solid var(--b); outline-offset:3px }
+</style>
+</head>
+<body>
+<main>
+<header><h1>并行还是 Ultrafast？</h1><small>合成样本 · Codex 普通档 · 150 轮</small></header>
+<section aria-labelledby="pick">
+<h2 id="pick"><span>01</span>怎么选</h2>
+<div class="pick-layout">
+<div class="tree">
+<div class="node">下一步等回复？</div>
+<ul>
+<li><span class="branch">是</span><strong class="answer b">B · Ultrafast 单会话</strong></li>
+<li><span class="branch">否</span><div class="node" aria-label="有至少两项可以独立进行的任务吗？">≥2 件独立？</div>
+<ul>
+<li><span class="branch">否</span><strong class="answer neutral">单聊后台</strong></li>
+<li><span class="branch">是</span><div class="node" aria-label="争同一个工具实例或文件？">争同一资源？</div>
+<ul>
+<li><span class="branch">是</span><strong class="answer neutral">冲突步骤排队</strong></li>
+<li><span class="branch">否</span><div class="node">预计等待？</div><ul><li><span class="branch wait">&lt;2 分</span><strong class="answer neutral">留单聊</strong></li><li><span class="branch wait">2 分–&lt;5 分</span><strong class="answer neutral">酌情</strong></li><li><span class="branch wait">≥5 分</span><strong class="answer a">A · 普通档并行</strong></li></ul></li>
+</ul></li></ul></li></ul>
+</div><aside class="chart" aria-label="历史中等待回复时发消息给别的会话"><h3>等待时另发消息</h3><div class="bar-row short"><span>30 秒–2 分</span><span class="bar" aria-hidden="true"><i style="width:5.56%"></i></span><span><b>6%</b> <small>2/36</small></span></div><div class="bar-row long"><span>≥5 分</span><span class="bar" aria-hidden="true"><i style="width:84.78%"></i></span><span><b>85%</b> <small>39/46</small></span></div></aside></div></section>
+<section aria-labelledby="a8"><h2 id="a8"><span>02</span>A8 发出时</h2><figure aria-label="发出 A8 时，A1、A3、A5 已结束，A2、A4、A6、A7 继续运行。时间线只显示结束和发出的相对位置。">
+<svg viewBox="0 0 352 198" aria-hidden="true">
+<path class="marker" d="M170 6V190"/>
+<text x="9" y="27">A1</text><path class="finished" d="M38 23H51.2"/><text x="9" y="49">A2</text><path class="running" d="M50 45H239.5"/><text x="9" y="71">A3</text><path class="finished" d="M38 67H123.5"/><text x="9" y="93">A4</text><path class="running" d="M50 89H256.9"/><text x="9" y="115">A5</text><path class="finished" d="M38 111H157.6"/><text x="9" y="137">A6</text><path class="running" d="M50 133H291.7"/><text x="9" y="159">A7</text><path class="running" d="M50 155H338.0"/><text x="9" y="181">A8</text><path class="sent" d="M170 177H338.0"/>
+</svg>
+<figcaption>合成 · <span class="done">■ 3 完成</span> <span class="busy">■ 4 在跑</span> <span class="now">■ 发出</span></figcaption>
+</figure></section>
+</main>
+</body>
+</html>
